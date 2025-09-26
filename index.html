@@ -2,56 +2,159 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>EduPress</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>EduPress — Newspaper-style Learning</title>
 
-  <!-- CSS is inside <style> -->
+  <!-- CSS -->
   <style>
-    body { font-family: Georgia, serif; background:#f6f3ee; }
-    .masthead { background:#fff; padding:20px; border-bottom:4px solid #b33; }
-    .article { border:1px solid #eee; padding:12px; margin:10px 0; cursor:pointer }
-    .overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); display:none; 
-               align-items:center; justify-content:center; }
-    .modal { background:#fff; padding:20px; border-radius:12px; max-width:600px; }
+    :root{
+      --bg:#f6f3ee; --paper:#fff; --ink:#222; --muted:#6b6b6b;
+      --accent:#b33; --accent-2:#0a66c2;
+      font-family:'Georgia',serif; --radius:12px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--ink);}
+
+    /* Masthead */
+    header{background:#fff;border-bottom:4px solid var(--accent);padding:20px}
+    header h1{font-size:32px;font-weight:900;letter-spacing:2px}
+    header p{color:var(--muted);font-size:14px}
+
+    /* Layout */
+    .container{max-width:1100px;margin:20px auto;padding:0 16px;display:grid;grid-template-columns:2fr 1fr;gap:20px}
+    @media(max-width:900px){.container{grid-template-columns:1fr}}
+
+    /* Articles */
+    .article{background:var(--paper);border:1px solid #ddd;border-radius:var(--radius);padding:14px;margin-bottom:14px;cursor:pointer;transition:.2s}
+    .article:hover{box-shadow:0 4px 12px rgba(0,0,0,0.1)}
+    .article h2{font-size:20px;margin-bottom:6px}
+    .meta{font-size:13px;color:var(--muted);margin-bottom:8px}
+    .excerpt{font-size:15px;line-height:1.6}
+
+    /* Sidebar */
+    aside .card{background:var(--paper);border:1px solid #ddd;border-radius:var(--radius);padding:14px;margin-bottom:14px}
+    .categories button{display:block;width:100%;margin:4px 0;padding:6px;border:0;border-radius:6px;text-align:left;cursor:pointer}
+    .categories button.active{background:#fde6e6;font-weight:bold;border:1px solid #f2c2c2}
+
+    /* Modal */
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center}
+    .modal{background:var(--paper);border-radius:var(--radius);max-width:700px;width:90%;padding:20px}
+    .modal h2{margin-bottom:10px}
+    .close{background:#eee;border:0;padding:6px 10px;border-radius:8px;cursor:pointer;float:right}
+
+    footer{max-width:1100px;margin:30px auto;padding:16px;font-size:14px;color:var(--muted)}
   </style>
 </head>
-
 <body>
-  <header class="masthead">
+
+  <header>
     <h1>EDUPRESS</h1>
-    <p>Learn like you're reading the morning paper</p>
+    <p>Learn like reading the morning paper — quick lessons & daily boosts</p>
   </header>
 
-  <main>
-    <div class="article" onclick="openModal('Lesson 1','This is lesson 1 content.')">
-      <h2>Lesson 1: Active Recall</h2>
-      <p>Short description of lesson.</p>
-    </div>
+  <main class="container">
+    <!-- Main content -->
+    <section id="articles"></section>
 
-    <div class="article" onclick="openModal('Lesson 2','This is lesson 2 content.')">
-      <h2>Lesson 2: Speed Reading</h2>
-      <p>Short description of lesson.</p>
-    </div>
+    <!-- Sidebar -->
+    <aside>
+      <div class="card">
+        <h3>Categories</h3>
+        <div class="categories" id="categories"></div>
+      </div>
+      <div class="card">
+        <h3>Top Lessons</h3>
+        <ol id="toplist"></ol>
+      </div>
+    </aside>
   </main>
+
+  <footer>
+    © 2025 EduPress • Quick learning daily • Terms • Privacy
+  </footer>
 
   <!-- Modal -->
   <div class="overlay" id="overlay">
     <div class="modal">
+      <button class="close" onclick="closeModal()">Close</button>
       <h2 id="modal-title"></h2>
-      <p id="modal-content"></p>
-      <button onclick="closeModal()">Close</button>
+      <p id="modal-meta" style="color:var(--muted)"></p>
+      <hr style="margin:10px 0">
+      <div id="modal-content"></div>
     </div>
   </div>
 
-  <!-- JavaScript is inside <script> -->
+  <!-- JavaScript -->
   <script>
-    function openModal(title, content) {
-      document.getElementById("modal-title").innerText = title;
-      document.getElementById("modal-content").innerText = content;
-      document.getElementById("overlay").style.display = "flex";
+    const lessons = [
+      {id:1,title:'Active Recall Routine',cat:'Study Skills',author:'A. Kumar',date:'2025-09-26',time:'7 min',excerpt:'Learn a 10-minute daily recall practice.',content:'Active recall improves memory. Steps: Read 5 min → Close book → Recall → Test yourself.'},
+      {id:2,title:'Speed Reading for Notes',cat:'Learning Tips',author:'M. Sharma',date:'2025-09-20',time:'5 min',excerpt:'Techniques to process lecture notes faster.',content:'Focus on structure, headings and key sentences.'},
+      {id:3,title:'Spaced Repetition Basics',cat:'Memory',author:'L. Das',date:'2025-08-30',time:'8 min',excerpt:'Why spaced reviews beat cramming.',content:'Spaced repetition uses forgetting curves. Try Anki or flashcards.'},
+      {id:4,title:'Effective Note-taking',cat:'Study Skills',author:'R. Patel',date:'2025-07-12',time:'6 min',excerpt:'Cornell vs Zettelkasten explained.',content:'Use Cornell for class, Zettelkasten for projects.'}
+    ];
+
+    const cats = [...new Set(lessons.map(l=>l.cat))];
+    const articleBox = document.getElementById('articles');
+    const catBox = document.getElementById('categories');
+    const topList = document.getElementById('toplist');
+
+    function renderArticles(list=lessons){
+      articleBox.innerHTML='';
+      list.forEach(l=>{
+        const div=document.createElement('div');
+        div.className='article';
+        div.innerHTML=`<h2>${l.title}</h2>
+          <div class="meta">${l.author} · ${l.date} · ${l.time}</div>
+          <div class="excerpt">${l.excerpt}</div>`;
+        div.onclick=()=>openModal(l);
+        articleBox.appendChild(div);
+      });
     }
-    function closeModal() {
-      document.getElementById("overlay").style.display = "none";
+
+    function renderCategories(){
+      catBox.innerHTML='';
+      const all=document.createElement('button');
+      all.textContent='All'; all.classList.add('active');
+      all.onclick=()=>filter(null);
+      catBox.appendChild(all);
+      cats.forEach(c=>{
+        const b=document.createElement('button');
+        b.textContent=c;
+        b.onclick=()=>filter(c);
+        catBox.appendChild(b);
+      });
     }
+
+    function renderTop(){
+      topList.innerHTML='';
+      lessons.slice(0,3).forEach(l=>{
+        const li=document.createElement('li');
+        li.textContent=`${l.title} — ${l.author}`;
+        topList.appendChild(li);
+      });
+    }
+
+    function filter(cat){
+      document.querySelectorAll('.categories button').forEach(b=>b.classList.remove('active'));
+      const btn=[...document.querySelectorAll('.categories button')].find(b=>b.textContent=== (cat||'All'));
+      if(btn) btn.classList.add('active');
+      if(!cat) renderArticles(); else renderArticles(lessons.filter(l=>l.cat===cat));
+    }
+
+    // Modal
+    function openModal(l){
+      document.getElementById('modal-title').textContent=l.title;
+      document.getElementById('modal-meta').textContent=`${l.author} · ${l.date} · ${l.time}`;
+      document.getElementById('modal-content').textContent=l.content;
+      document.getElementById('overlay').style.display='flex';
+    }
+    function closeModal(){ document.getElementById('overlay').style.display='none'; }
+
+    // Init
+    renderArticles();
+    renderCategories();
+    renderTop();
   </script>
 </body>
 </html>
+
