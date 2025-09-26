@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>EduPress</title>
+
+  <!-- CSS is inside <style> -->
+  <style>
+    body { font-family: Georgia, serif; background:#f6f3ee; }
+    .masthead { background:#fff; padding:20px; border-bottom:4px solid #b33; }
+    .article { border:1px solid #eee; padding:12px; margin:10px 0; cursor:pointer }
+    .overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); display:none; 
+               align-items:center; justify-content:center; }
+    .modal { background:#fff; padding:20px; border-radius:12px; max-width:600px; }
+  </style>
+</head>
+
+<body>
+  <header class="masthead">
+    <h1>EDUPRESS</h1>
+    <p>Learn like you're reading the morning paper</p>
+  </header>
+
+  <main>
+    <div class="article" onclick="openModal('Lesson 1','This is lesson 1 content.')">
+      <h2>Lesson 1: Active Recall</h2>
+      <p>Short description of lesson.</p>
+    </div>
+
+    <div class="article" onclick="openModal('Lesson 2','This is lesson 2 content.')">
+      <h2>Lesson 2: Speed Reading</h2>
+      <p>Short description of lesson.</p>
+    </div>
+  </main>
+
+  <!-- Modal -->
+  <div class="overlay" id="overlay">
+    <div class="modal">
+      <h2 id="modal-title"></h2>
+      <p id="modal-content"></p>
+      <button onclick="closeModal()">Close</button>
+    </div>
+  </div>
+
+  <!-- JavaScript is inside <script> -->
+  <script>
+    function openModal(title, content) {
+      document.getElementById("modal-title").innerText = title;
+      document.getElementById("modal-content").innerText = content;
+      document.getElementById("overlay").style.display = "flex";
+    }
+    function closeModal() {
+      document.getElementById("overlay").style.display = "none";
+    }
+  </script>
+</body>
+</html>
